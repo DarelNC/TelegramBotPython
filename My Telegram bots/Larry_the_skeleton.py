@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import logging
 from html import escape
-from turtle import goto
-
 from bing_image_downloader import downloader
 
 import pickledb
@@ -12,8 +10,8 @@ from telegram import ParseMode, TelegramError
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
 
-BOTNAME = "Larry_the_bot"
-TOKEN = '1271612609:AAGF3fXqBQjCgaiGVX-BPIZhsDorSz7c8Dg'
+BOTNAME = "Skuldy_the_bot"
+TOKEN = '1402640149:AAE7dDGNAfye8lc4FgaPY1MSVNUPYZ3jnTQ'
 
 # New Help
 help_text = (
@@ -25,7 +23,7 @@ help_text = (
     "/angela - A reminder to Angela that she has pending payments with the group\n"
     "/photo <TEXT> - A cool picture \n"
     "...\n"
-    "Okey fine... I don't know what I can do\n"
+    "Okey fine... I don't know what else I can add\n"
     "Bye...\n\n"
 )
 
@@ -41,7 +39,7 @@ Database schema:
 chats -> list of chat ids where the bot has received messages in.
 """
 # Create database object
-db = pickledb.load("bot.db", True)
+db = pickledb.load("bot_the_skeleton.db", True)
 
 if not db.get("chats"):
     db.set("chats", [])
@@ -337,7 +335,7 @@ def error(update, context, **kwargs):
 
 
 def angela(update, context):
-    text = "@asuna98 paga la coca!! Primer aviso!!!"
+    text = "Ángela paga la coca!! Primer aviso!!!"
     context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML,
                              disable_notification=True)
 
@@ -348,8 +346,8 @@ def unknown(update, context):
 
 
 def download_photos(update, query_string):
-    downloader.download(query_string, limit=1, output_dir='Larry_images',
-                        adult_filter_off=True, force_replace=True, timeout=5)
+    downloader.download(query_string, limit=10, output_dir='Larry_images',
+                        adult_filter_off=True, force_replace=True, timeout=60)
 
 
 def photo(update, context):
@@ -357,42 +355,12 @@ def photo(update, context):
     """ primero descargamos X cantidad de fotos, y luego envíamos una al azar."""
     """ Pero, en vez de descargar las fotos, quiero almacenar en un array, las URL
         de los archivos descargables, y envíar uno al azar"""
-
-    chat_id = update.message.chat.id
     query_string = update.message.text.partition(" ")[2]
-
-    # Only continue if there's a message
-    if not query_string:
-        send_async(
-            context,
-            chat_id=chat_id,
-            text="You need to send a message, too! For example:\n"
-                 "/photo cats!! ",
-            parse_mode=ParseMode.HTML,
-        )
-        return
-
-    for i in query_string:
-        if i == '\\' or i == '/' or i == ':' or i == '*' or i == '?' or i == '"' or i == '<' or i == '>' or i == '|':
-            send_async(context, chat_id=chat_id, text="Stop trying to break me!!!\n")
-            return
-
     download_photos(update, query_string)
 
-    # num_image = random.randrange(1, 5)
-    num_image = 1
+    name = "Larry_images/" + query_string + "/Image_" + str(random.randrange(1, 10)) + ".jpg"
 
-    name = "Larry_images/" + query_string + "/Image_" + str(num_image) + ".jpg"
-
-    try:
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(name, "rb"))
-    except:
-        try:
-            name = "Larry_images/" + query_string + "/Image_" + str(num_image) + ".png"
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(name, "rb"))
-        except:
-            name = "Larry_images/" + query_string + "/Image_" + str(num_image) + ".gif"
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(name, "rb"))
+    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(name, "rb"))
 
 
 def main():
